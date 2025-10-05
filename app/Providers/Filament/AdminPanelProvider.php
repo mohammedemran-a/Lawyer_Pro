@@ -7,11 +7,11 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -19,7 +19,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Dashboard;
-use Filament\Navigation\NavigationGroup;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -29,9 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('مكتب المحاماة')
-            ->login() // <-- هذا يضمن صفحة الدخول
-            ->authGuard('web') // <-- هذا أهم سطر (يمنع 403)
+            ->login() // يجعل صفحة الدخول تعمل
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -41,9 +38,6 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                //
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -55,27 +49,12 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->plugins([
-                FilamentShieldPlugin::make(),
-            ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->authGuard('web') // ✅ أهم سطر يحل مشكلة 403
+            ->plugins([
+                FilamentShieldPlugin::make(),
             ]);
-    }
-
-    public function navigationGroups(): array
-    {
-        return [
-            NavigationGroup::make()->label('لوحة التحكم'),
-            NavigationGroup::make()->label('العملاء والتوكيلات'),
-            NavigationGroup::make()->label('القضايا والمحاكم'),
-            NavigationGroup::make()->label('المحامين'),
-            NavigationGroup::make()->label('الجلسات والمهام'),
-            NavigationGroup::make()->label('المستندات والتقارير'),
-            NavigationGroup::make()->label('المالية'),
-            NavigationGroup::make()->label('الذكاء الاصطناعي'),
-            NavigationGroup::make()->label('إدارة المستخدمين'),
-            NavigationGroup::make()->label('إدارة الوصول'),
-        ];
     }
 }
