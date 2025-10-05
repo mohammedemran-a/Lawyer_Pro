@@ -23,13 +23,11 @@ class LawyerContactResource extends Resource
     {
         return $form
             ->schema([
-                // اختيار المحامي
                 Forms\Components\Select::make('lawyer_id')
-                    ->relationship('lawyer', 'name') // يفترض أن جدول المحامين فيه عمود name
+                    ->relationship('lawyer', 'name')
                     ->label('المحامي')
                     ->required(),
 
-                // نوع التواصل
                 Forms\Components\Select::make('type')
                     ->options([
                         'phone' => 'هاتف',
@@ -39,7 +37,6 @@ class LawyerContactResource extends Resource
                     ->label('نوع التواصل')
                     ->required(),
 
-                // القيمة
                 Forms\Components\TextInput::make('value')
                     ->label('القيمة')
                     ->required()
@@ -51,15 +48,30 @@ class LawyerContactResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
-                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('type')->label('النوع')->sortable(),
-                Tables\Columns\TextColumn::make('value')->label('القيمة')->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإنشاء')->dateTime('d-m-Y H:i'),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('الرقم')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('lawyer.name')
+                    ->label('المحامي')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('type')
+                    ->label('نوع التواصل')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('value')
+                    ->label('القيمة')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('تاريخ الإنشاء')
+                    ->dateTime('d-m-Y H:i'),
             ])
             ->filters([
-                // فلترة حسب النوع
                 Tables\Filters\SelectFilter::make('type')
+                    ->label('نوع التواصل')
                     ->options([
                         'phone' => 'هاتف',
                         'email' => 'بريد إلكتروني',
@@ -67,12 +79,12 @@ class LawyerContactResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()->label('تعديل'),
+                Tables\Actions\DeleteAction::make()->label('حذف'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('حذف المحدد'),
                 ]),
             ]);
     }
@@ -85,6 +97,7 @@ class LawyerContactResource extends Resource
             'edit' => Pages\EditLawyerContact::route('/{record}/edit'),
         ];
     }
+
     public static function getNavigationGroup(): ?string
     {
         return 'المحامين';

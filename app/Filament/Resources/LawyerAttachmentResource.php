@@ -9,7 +9,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class LawyerAttachmentResource extends Resource
 {
@@ -20,31 +19,26 @@ class LawyerAttachmentResource extends Resource
     protected static ?string $pluralLabel = 'المرفقات';
     protected static ?string $modelLabel = 'مرفق';
 
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // اختيار المحامي
                 Forms\Components\Select::make('lawyer_id')
                     ->relationship('lawyer', 'name')
                     ->label('المحامي')
                     ->required(),
 
-                // اسم الملف
                 Forms\Components\TextInput::make('file_name')
                     ->label('اسم الملف')
                     ->required()
                     ->maxLength(255),
 
-                // رفع الملف (اختياري)
                 Forms\Components\FileUpload::make('file_path')
                     ->label('المسار (مرفق)')
                     ->directory('lawyer_attachments')
                     ->visibility('public')
                     ->nullable(),
 
-                // نوع المرفق
                 Forms\Components\Select::make('category')
                     ->options([
                         'إنابة' => 'إنابة',
@@ -55,24 +49,21 @@ class LawyerAttachmentResource extends Resource
                     ->label('التصنيف')
                     ->required(),
 
-                // مكان التخزين
                 Forms\Components\Select::make('storage_type')
                     ->options([
                         'DB' => 'قاعدة البيانات',
-                        'Path' => 'مسار (Storage)',
+                        'Path' => 'المسار (Storage)',
                     ])
                     ->label('طريقة التخزين')
                     ->default('Path')
                     ->required(),
 
-                // رفع ملف بصيغة Blob (إذا أردت تخزينه مباشرة بالـ DB)
                 Forms\Components\FileUpload::make('file_blob')
-                    ->label('مرفق (DB Blob)')
+                    ->label('مرفق (قاعدة البيانات)')
                     ->nullable()
                     ->enableDownload()
                     ->enableOpen(),
 
-                // وقت الرفع
                 Forms\Components\DateTimePicker::make('uploaded_at')
                     ->label('تاريخ الرفع')
                     ->default(now()),
@@ -83,7 +74,7 @@ class LawyerAttachmentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
+                Tables\Columns\TextColumn::make('id')->label('الرقم')->sortable(),
                 Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('file_name')->label('اسم الملف')->searchable(),
                 Tables\Columns\BadgeColumn::make('category')
@@ -92,13 +83,16 @@ class LawyerAttachmentResource extends Resource
                         'primary' => 'إنابة',
                         'success' => 'بطاقة نقابة',
                         'warning' => 'هوية',
-                        'secondary' => 'اخرى',
+                        'secondary' => 'أخرى',
                     ]),
-                Tables\Columns\TextColumn::make('storage_type')->label('التخزين'),
-                Tables\Columns\TextColumn::make('uploaded_at')->label('تاريخ الرفع')->dateTime('d-m-Y H:i'),
+                Tables\Columns\TextColumn::make('storage_type')->label('طريقة التخزين'),
+                Tables\Columns\TextColumn::make('uploaded_at')
+                    ->label('تاريخ الرفع')
+                    ->dateTime('d-m-Y H:i'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
+                    ->label('التصنيف')
                     ->options([
                         'إنابة' => 'إنابة',
                         'بطاقة نقابة' => 'بطاقة نقابة',
@@ -107,12 +101,12 @@ class LawyerAttachmentResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()->label('تعديل'),
+                Tables\Actions\DeleteAction::make()->label('حذف'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('حذف المحدد'),
                 ]),
             ]);
     }
@@ -125,6 +119,7 @@ class LawyerAttachmentResource extends Resource
             'edit' => Pages\EditLawyerAttachment::route('/{record}/edit'),
         ];
     }
+
     public static function getNavigationGroup(): ?string
     {
         return 'المحامين';
@@ -135,4 +130,3 @@ class LawyerAttachmentResource extends Resource
         return 2;
     }
 }
-
