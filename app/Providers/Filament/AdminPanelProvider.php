@@ -19,6 +19,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Dashboard;
+use Filament\Navigation\NavigationGroup;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,29 +29,21 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-           // ->brandLogo(asset('logo.png'))
-            //->brandLogoHeight('30px')
             ->brandName('مكتب المحاماة')
-            //->viteTheme('resources/css/filament.css')
-
-            ->login()
+            ->login() // <-- هذا يضمن صفحة الدخول
+            ->authGuard('web') // <-- هذا أهم سطر (يمنع 403)
             ->colors([
                 'primary' => Color::Amber,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('app\Filament/Pages'), for: 'app\\Filament\\Pages')
-           // ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-            // Pages\Dashboard::class,
-              Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-               // Widgets\AccountWidget::class,
-               // Widgets\FilamentInfoWidget::class,
+                //
             ])
-            //  ->databaseNotifications()
-            //  ->databaseNotificationsPolling('30s') 
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -69,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ]);
     }
+
     public function navigationGroups(): array
     {
         return [
