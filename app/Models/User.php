@@ -116,7 +116,7 @@ class User extends Authenticatable
 
 public function canAccessFilament(): bool
 {
-    // السماح للمستخدم بالدخول إذا كان لديه أحد هذه الأدوار أو تم تفعيله
-    return $this->hasAnyRole(['admin', 'user']) || $this->is_active;
+    return $this->hasRole('super_admin') || $this->hasAnyRole(['admin', 'user']) || $this->is_active;
 }
+
 }
