@@ -2,33 +2,72 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File; // تم تصحيح الاستيراد هنا
+use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // إنشاء مستخدم super admin يدويًا
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'], // البحث بالبريد
+        // 1️⃣ تحديد صلاحيات عامة لكل Resource
+        $resourcePrefixes = [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'restore',
+            'restore_any',
+            'replicate',
+            'reorder',
+            'delete',
+            'delete_any',
+            'force_delete',
+            'force_delete_any',
+        ];
+
+        // 2️⃣ قراءة كل Resources تلقائيًا من مجلد App/Filament/Resources
+        $resourcePath = app_path('Filament/Resources');
+        $resources = [];
+        if (is_dir($resourcePath)) {
+            foreach (File::files($resourcePath) as $file) {
+                $resources[] = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            }
+        }
+
+        // 3️⃣ إنشاء صلاحيات لكل Resource
+        foreach ($resources as $resource) {
+            $resourceName = strtolower(str_replace('Resource', '', $resource));
+            foreach ($resourcePrefixes as $prefix) {
+                $permName = "{$prefix}_{$resourceName}";
+                Permission::firstOrCreate(['name' => $permName]);
+            }
+        }
+
+        // 4️⃣ إضافة Pages إضافية يدويًا إذا أردت
+        $pages = ['dashboard',]; // ضع أسماء صفحاتك
+        foreach ($pages as $page) {
+            $pagePerm = "view_{$page}";
+            Permission::firstOrCreate(['name' => $pagePerm]);
+        }
+
+        // 5️⃣ إنشاء دور Super Admin وربطه بكل الصلاحيات
+        $superAdminRole = Role::firstOrCreate(['name' => 'super-admin']);
+        $superAdminRole->syncPermissions(Permission::all());
+
+        // 6️⃣ إنشاء مستخدم Super Admin
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('password'),
             ]
         );
+        $superAdmin->assignRole($superAdminRole);
 
-        // التأكد من وجود الدور في حال تم تثبيت Shield أو Spatie Permission
-        $role = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
-
-        // ربط الدور بالمستخدم
-        $admin->assignRole($role);
-
-        $this->command->info('✅ Super Admin created: admin@example.com / password');
+        $this->command->info('Seeder: Super Admin, Roles & Permissions created dynamically!');
     }
-}
+}  
