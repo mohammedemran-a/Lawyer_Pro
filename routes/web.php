@@ -4,12 +4,15 @@ use Illuminate\Support\Facades\Route;
 //use App\Http\Controllers\Api\LogalAssistantBotController;
 
 
-Route::get('/', function () {
-    return view('welcome');
+// Route::get('/', function () {
+//     return view('welcome');
  
 
 
-});
+// });
+
+Route::redirect('/', '/admin');
+
 
 // Route::prefix('logal-assistant-bots')->group(function () {
 //     Route::get('/', [LogalAssistantBotController::class, 'index']);      // عرض كل السجلات
