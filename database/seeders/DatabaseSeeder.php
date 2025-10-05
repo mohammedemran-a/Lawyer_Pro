@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\File; // تم تصحيح الاستيراد هنا
+use Illuminate\Support\Facades\File;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1️⃣ تحديد صلاحيات عامة لكل Resource
+        // 1️⃣ الأفعال العامة لكل Resource
         $resourcePrefixes = [
             'view',
             'view_any',
@@ -29,45 +29,71 @@ class DatabaseSeeder extends Seeder
             'force_delete_any',
         ];
 
-        // 2️⃣ قراءة كل Resources تلقائيًا من مجلد App/Filament/Resources
+        /*
+        |--------------------------------------------------------------------------
+        | 🧩 إنشاء صلاحيات Resources (بما في ذلك المجلدات الفرعية)
+        |--------------------------------------------------------------------------
+        */
         $resourcePath = app_path('Filament/Resources');
-        $resources = [];
         if (is_dir($resourcePath)) {
-            foreach (File::files($resourcePath) as $file) {
-                $resources[] = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            foreach (File::allFiles($resourcePath) as $file) {
+                $fileName = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                $resourceName = strtolower(str_replace('Resource', '', $fileName));
+
+                foreach ($resourcePrefixes as $prefix) {
+                    $permName = "{$prefix}_{$resourceName}";
+                    Permission::firstOrCreate(['name' => $permName]);
+                }
             }
         }
 
-        // 3️⃣ إنشاء صلاحيات لكل Resource
-        foreach ($resources as $resource) {
-            $resourceName = strtolower(str_replace('Resource', '', $resource));
-            foreach ($resourcePrefixes as $prefix) {
-                $permName = "{$prefix}_{$resourceName}";
-                Permission::firstOrCreate(['name' => $permName]);
+        /*
+        |--------------------------------------------------------------------------
+        | 📄 إنشاء صلاحيات Pages (بما في ذلك المجلدات الفرعية)
+        |--------------------------------------------------------------------------
+        */
+        $pagePath = app_path('Filament/Pages');
+        if (is_dir($pagePath)) {
+            foreach (File::allFiles($pagePath) as $file) {
+                $pageName = strtolower(pathinfo($file->getFilename(), PATHINFO_FILENAME));
+                Permission::firstOrCreate(['name' => "view_{$pageName}"]);
             }
         }
 
-        // 4️⃣ إضافة Pages إضافية يدويًا إذا أردت
-        $pages = ['dashboard',]; // ضع أسماء صفحاتك
-        foreach ($pages as $page) {
-            $pagePerm = "view_{$page}";
-            Permission::firstOrCreate(['name' => $pagePerm]);
+        /*
+        |--------------------------------------------------------------------------
+        | 🧱 إنشاء صلاحيات Widgets (بما في ذلك المجلدات الفرعية)
+        |--------------------------------------------------------------------------
+        */
+        $widgetPath = app_path('Filament/Widgets');
+        if (is_dir($widgetPath)) {
+            foreach (File::allFiles($widgetPath) as $file) {
+                $widgetName = strtolower(pathinfo($file->getFilename(), PATHINFO_FILENAME));
+                Permission::firstOrCreate(['name' => "view_{$widgetName}"]);
+            }
         }
 
-        // 5️⃣ إنشاء دور Super Admin وربطه بكل الصلاحيات
+        /*
+        |--------------------------------------------------------------------------
+        | 👑 إنشاء دور Super Admin وربطه بكل الصلاحيات
+        |--------------------------------------------------------------------------
+        */
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $superAdminRole->syncPermissions(Permission::all());
 
-        // 6️⃣ إنشاء مستخدم Super Admin
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'),
-            ]
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | 👤 إنشاء مستخدم Super Admin باستخدام Factory
+        |--------------------------------------------------------------------------
+        */
+        $superAdmin = User::factory()->create([
+            'name' => 'Super Admin',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
         $superAdmin->assignRole($superAdminRole);
 
-        $this->command->info('Seeder: Super Admin, Roles & Permissions created dynamically!');
+        $this->command->info('✅ تم إنشاء الصلاحيات والأدوار والمستخدم Super Admin بنجاح مع دعم المجلدات الفرعية!');
     }
-}  
+}
