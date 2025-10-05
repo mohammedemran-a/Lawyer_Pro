@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; // تحتاج هذا لإستخدام Hash::make
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,12 +14,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // إنشاء مستخدم super admin يدويًا
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@example.com'], // البحث بالبريد
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password'), // كلمة المرور هنا
-        ]);
+        // التأكد من وجود الدور في حال تم تثبيت Shield أو Spatie Permission
+        $role = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+
+        // ربط الدور بالمستخدم
+        $admin->assignRole($role);
+
+        $this->command->info('✅ Super Admin created: admin@example.com / password');
     }
 }
