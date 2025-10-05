@@ -113,4 +113,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(BotFeedbak::class);
     }
+
+public function canAccessFilament(): bool
+{
+    // السماح للمستخدم بالدخول إذا كان لديه أحد هذه الأدوار أو تم تفعيله
+    return $this->hasAnyRole(['Super Admin', 'مشرف', 'مستخدم']) || $this->is_active;
+}
+
+
 }
