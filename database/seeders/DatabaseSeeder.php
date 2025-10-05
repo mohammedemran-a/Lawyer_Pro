@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5️⃣ إنشاء دور Super Admin وربطه بكل الصلاحيات
-        $superAdminRole = Role::firstOrCreate(['name' => 'super-admin']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $superAdminRole->syncPermissions(Permission::all());
 
         // 6️⃣ إنشاء مستخدم Super Admin
