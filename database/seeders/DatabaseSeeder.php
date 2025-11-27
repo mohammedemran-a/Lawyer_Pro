@@ -1,28 +1,3 @@
-// <?php
-
-// namespace Database\Seeders;
-
-// use App\Models\User;
-// // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-// use Illuminate\Database\Seeder;
-// use Illuminate\Support\Facades\Hash; // تحتاج هذا لإستخدام Hash::make
-
-// class DatabaseSeeder extends Seeder
-// {
-//     /**
-//      * Seed the application's database.
-//      */
-//     public function run(): void
-//     {
-//         // User::factory(10)->create();
-
-//         User::factory()->create([
-//             'name' => 'Test User',
-//             'email' => 'test@example.com',
-//             'password' => Hash::make('password'), // كلمة المرور هنا
-//         ]);
-//     }
-// }
 <?php
 
 namespace Database\Seeders;
@@ -30,13 +5,13 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role; // <-- مهم جداً
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. أنشئ الدور الذي يبحث عنه filament-shield
+        // 1. أنشئ دور المدير الخارق الذي يبحث عنه filament-shield
         $role = Role::firstOrCreate(['name' => 'super_admin']);
 
         // 2. أنشئ المستخدم المدير
